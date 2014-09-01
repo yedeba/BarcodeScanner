@@ -21,8 +21,10 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.os.Handler;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.SurfaceHolder;
+
 import com.google.zxing.PlanarYUVLuminanceSource;
 import com.google.zxing.client.android.camera.open.OpenCameraManager;
 
@@ -217,11 +219,16 @@ public final class CameraManager {
         width = MAX_FRAME_WIDTH;
       }
       int height = screenResolution.y * 3 / 4;
-      if (height < MIN_FRAME_HEIGHT) {
-        height = MIN_FRAME_HEIGHT;
-      } else if (height > MAX_FRAME_HEIGHT) {
-        height = MAX_FRAME_HEIGHT;
+      if(width >= height){
+    	  width = height;
+      } else{
+    	  height = width;
       }
+//      if (height < MIN_FRAME_HEIGHT) {
+//        height = MIN_FRAME_HEIGHT;
+//      } else if (height > MAX_FRAME_HEIGHT) {
+//        height = MAX_FRAME_HEIGHT;
+//      }
       int leftOffset = (screenResolution.x - width) / 2;
       int topOffset = (screenResolution.y - height) / 2;
       framingRect = new Rect(leftOffset, topOffset, leftOffset + width, topOffset + height);
