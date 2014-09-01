@@ -46,6 +46,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.text.ClipboardManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
@@ -61,6 +62,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.google.zxing.FakeR;
 
 import java.io.IOException;
@@ -406,43 +408,54 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
    * @param barcode   A greyscale bitmap of the camera data which was decoded.
    */
   public void handleDecode(Result rawResult, Bitmap barcode) {
-    inactivityTimer.onActivity();
-    lastResult = rawResult;
-    ResultHandler resultHandler = ResultHandlerFactory.makeResultHandler(this, rawResult);
+//    inactivityTimer.onActivity();
+//    lastResult = rawResult;
+//    ResultHandler resultHandler = ResultHandlerFactory.makeResultHandler(this, rawResult);
+//
+//    boolean fromLiveScan = barcode != null;
+//    if (fromLiveScan) {
+//      historyManager.addHistoryItem(rawResult, resultHandler);
+//      // Then not from history, so beep/vibrate and we have an image to draw on
+//      beepManager.playBeepSoundAndVibrate();
+//      drawResultPoints(barcode, rawResult);
+//    }
+//
+//    switch (source) {
+//      case NATIVE_APP_INTENT:
+//      case PRODUCT_SEARCH_LINK:
+//        handleDecodeExternally(rawResult, resultHandler, barcode);
+//        break;
+//      case ZXING_LINK:
+//        if (returnUrlTemplate == null){
+//          handleDecodeInternally(rawResult, resultHandler, barcode);
+//        } else {
+//          handleDecodeExternally(rawResult, resultHandler, barcode);
+//        }
+//        break;
+//      case NONE:
+//        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+//        if (fromLiveScan && prefs.getBoolean(PreferencesActivity.KEY_BULK_MODE, false)) {
+//          String message = getResources().getString(fakeR.getId("string", "msg_bulk_mode_scanned"))
+//              + " (" + rawResult.getText() + ')';
+//          Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+//          // Wait a moment or else it will scan the same barcode continuously about 3 times
+//          restartPreviewAfterDelay(BULK_MODE_SCAN_DELAY_MS);
+//        } else {
+//          handleDecodeInternally(rawResult, resultHandler, barcode);
+//        }
+//        break;
+//    }
+	  String result = rawResult.getText(); 
+      if (!TextUtils.isEmpty(result)) {
+          Intent intent = new Intent();
+          intent.putExtra("SCAN_RESULT", rawResult.getText());
+          intent.putExtra("SCAN_RESULT_FORMAT", rawResult.getBarcodeFormat().toString());
+          setResult(RESULT_OK, intent);
+      } else {
+          setResult(RESULT_CANCELED);
+      }
 
-    boolean fromLiveScan = barcode != null;
-    if (fromLiveScan) {
-      historyManager.addHistoryItem(rawResult, resultHandler);
-      // Then not from history, so beep/vibrate and we have an image to draw on
-      beepManager.playBeepSoundAndVibrate();
-      drawResultPoints(barcode, rawResult);
-    }
-
-    switch (source) {
-      case NATIVE_APP_INTENT:
-      case PRODUCT_SEARCH_LINK:
-        handleDecodeExternally(rawResult, resultHandler, barcode);
-        break;
-      case ZXING_LINK:
-        if (returnUrlTemplate == null){
-          handleDecodeInternally(rawResult, resultHandler, barcode);
-        } else {
-          handleDecodeExternally(rawResult, resultHandler, barcode);
-        }
-        break;
-      case NONE:
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        if (fromLiveScan && prefs.getBoolean(PreferencesActivity.KEY_BULK_MODE, false)) {
-          String message = getResources().getString(fakeR.getId("string", "msg_bulk_mode_scanned"))
-              + " (" + rawResult.getText() + ')';
-          Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-          // Wait a moment or else it will scan the same barcode continuously about 3 times
-          restartPreviewAfterDelay(BULK_MODE_SCAN_DELAY_MS);
-        } else {
-          handleDecodeInternally(rawResult, resultHandler, barcode);
-        }
-        break;
-    }
+      finish();
   }
 
   /**

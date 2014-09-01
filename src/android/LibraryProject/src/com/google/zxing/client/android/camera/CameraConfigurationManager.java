@@ -27,6 +27,7 @@ import android.view.WindowManager;
 
 import com.google.zxing.client.android.PreferencesActivity;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -62,19 +63,34 @@ final class CameraConfigurationManager {
     Camera.Parameters parameters = camera.getParameters();
     WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
     Display display = manager.getDefaultDisplay();
-    int width = display.getWidth();
-    int height = display.getHeight();
-    // We're landscape-only, and have apparently seen issues with display thinking it's portrait 
-    // when waking from sleep. If it's not landscape, assume it's mistaken and reverse them:
-    if (width < height) {
-      Log.i(TAG, "Display reports portrait orientation; assuming this is incorrect");
-      int temp = width;
-      width = height;
-      height = temp;
-    }
-    screenResolution = new Point(width, height);
+    // lofy begin
+//    int width = display.getWidth();
+//    int height = display.getHeight();
+//    // We're landscape-only, and have apparently seen issues with display thinking it's portrait 
+//    // when waking from sleep. If it's not landscape, assume it's mistaken and reverse them:
+//    if (width < height) {
+//      Log.i(TAG, "Display reports portrait orientation; assuming this is incorrect");
+//      int temp = width;
+//      width = height;
+//      height = temp;
+//    }
+//    screenResolution = new Point(width, height);
+    //lofy add 
+    screenResolution = new Point(display.getWidth(), display.getHeight());
+    //lofy end
+    
     Log.i(TAG, "Screen resolution: " + screenResolution);
-    cameraResolution = findBestPreviewSizeValue(parameters, screenResolution);
+    //lofy begin
+    Point screenResolutionForCamera = new Point();
+    screenResolutionForCamera.x = screenResolution.x;
+    screenResolutionForCamera.y = screenResolution.y;
+    if (screenResolution.x < screenResolution.y) {
+        screenResolutionForCamera.x = screenResolution.y;
+        screenResolutionForCamera.y = screenResolution.x;
+       }
+    cameraResolution = findBestPreviewSizeValue(parameters,screenResolutionForCamera);
+//    cameraResolution = findBestPreviewSizeValue(parameters, screenResolution);
+    //lofy end
     Log.i(TAG, "Camera resolution: " + cameraResolution);
   }
 
@@ -119,6 +135,15 @@ final class CameraConfigurationManager {
     }
 
     parameters.setPreviewSize(cameraResolution.x, cameraResolution.y);
+    
+    //lofy begin
+    try{
+	    Method downPolymorphic = camera.getClass().getMethod("setDisplayOrientation",new Class[] {int.class });
+		downPolymorphic.invoke(camera, new Object[]{90});
+    }catch(Exception e){
+    	
+    }
+    //lofy end
     camera.setParameters(parameters);
   }
 
